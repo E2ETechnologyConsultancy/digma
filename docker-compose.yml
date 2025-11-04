@@ -1,0 +1,61 @@
+services:
+  api:
+    build: ./api
+    working_dir: /usr/src/app
+    volumes:
+      - ./api:/usr/src/app:delegated
+      - /usr/src/app/node_modules
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    command: sh docker-entrypoint.sh
+
+  python-jobs:
+    build: ./python-jobs
+    volumes:
+      - ./python-jobs:/usr/src/app
+    env_file:
+      - ./.env
+
+  frontend:
+    build: ./frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api
+    command: sh docker-entrypoint.sh
+
+  admin:
+    build: ./admin
+    working_dir: /app
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+    ports:
+      - "3001:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api
+    command: sh docker-entrypoint.sh
+
+  db:
+    image: mongo:6.0
+    environment:
+      MONGO_INITDB_DATABASE: digma
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
