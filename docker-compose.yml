@@ -12,13 +12,30 @@ services:
     depends_on:
       - db
     command: sh docker-entrypoint.sh
+    # API Features:
+    # - TypeScript compilation
+    # - Jest testing framework
+    # - Swagger/OpenAPI documentation at /api-docs
+    # - JWT authentication with RBAC
+    # - GraphQL endpoint at /graphql
 
-  python-jobs:
-    build: ./python-jobs
+  ai-engine:
+    build: ./api/ai-engine
+    working_dir: /app
     volumes:
-      - ./python-jobs:/usr/src/app
+      - ./api/ai-engine:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
     env_file:
       - ./.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build: ./frontend
